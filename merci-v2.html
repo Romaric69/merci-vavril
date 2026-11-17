@@ -87,6 +87,15 @@ p{margin:0 0 14px}
   line-height:1.4;
 }
 .commande .total{margin:10px 0 0;font-size:.95rem;font-weight:600}
+.commande .precisions{
+  margin:12px 0 0;
+  padding-top:10px;
+  border-top:1px solid #e6dcd2;
+  font-size:.95rem;
+  line-height:1.4;
+}
+.commande .precisions span{display:block;font-weight:600;margin-bottom:4px}
+.commande .precisions p{margin:0;white-space:pre-line;overflow-wrap:anywhere}
 .signature{
   margin-top:24px;
   padding-top:22px;
@@ -125,6 +134,10 @@ p{margin:0 0 14px}
       <h2>Votre commande</h2>
       <ul id="commande-lignes"></ul>
       <p class="total" id="commande-total"></p>
+      <div class="precisions" id="commande-infos" hidden>
+        <span>Vos précisions</span>
+        <p id="commande-infos-texte"></p>
+      </div>
     </section>
     <p class="fermer">Faites une capture d'écran de cette page : c'est votre récapitulatif.<br>Une erreur, un changement ? Appelez Jean-Luc au <a href="tel:+33675562532">06&nbsp;75&nbsp;56&nbsp;25&nbsp;32</a> ou écrivez à <a href="mailto:grandjean@ducruix69.com">grandjean@ducruix69.com</a> avant la date limite de commande.</p>
     <div class="signature">
@@ -156,6 +169,16 @@ p{margin:0 0 14px}
   ];
   var hash=location.hash.replace(/^#/,"");
   if(!hash) return;
+  // « infos » (texte libre du client) est toujours la dernière clé de l'URL :
+  // on prend tout ce qui suit, même si le texte contient & ou #.
+  var infos="", k=hash.search(/(^|&)infos=/);
+  if(k>=0){
+    infos=hash.slice(hash.indexOf("infos=",k)+6);
+    hash=hash.slice(0,k);
+    try{infos=decodeURIComponent(infos);}catch(e){}
+    infos=infos.trim();
+    if(infos.length>300) infos=infos.slice(0,300)+"…";
+  }
   // Ne garde que les nombres entiers (1 à 3 chiffres) ; tout le reste est ignoré
   var qte={};
   hash.split("&").forEach(function(paire){
@@ -182,9 +205,18 @@ p{margin:0 0 14px}
     ul.appendChild(li);
     tot[p[2]]+=n; nb++;
   });
-  if(!nb) return;
-  document.getElementById("commande-total").textContent=
-    "Total : "+pl(tot.c,"carton")+", "+pl(tot.m,"magnum")+", "+pl(tot.f,"fontaine");
+  if(!nb && !infos) return;
+  if(nb){
+    document.getElementById("commande-total").textContent=
+      "Total : "+pl(tot.c,"carton")+", "+pl(tot.m,"magnum")+", "+pl(tot.f,"fontaine");
+  } else {
+    document.getElementById("commande-total").hidden=true;
+  }
+  if(infos){
+    // textContent : le texte est affiché tel quel, jamais interprété comme du code
+    document.getElementById("commande-infos-texte").textContent=infos;
+    document.getElementById("commande-infos").hidden=false;
+  }
   document.getElementById("commande").hidden=false;
 })();
 </script>
